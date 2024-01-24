@@ -5,54 +5,44 @@
 </head>
 <body>
     <video id="videoPlayer" width="640" height="480" controls>
-        <source src="static/video.mp4" type="video/mp4">
+        <source src="/static/video.mp4" type="video/mp4">
+        Ваш браузер не поддерживает тег video.
     </video>
     <script>
         const video = document.getElementById('videoPlayer');
-        const ws = new WebSocket("ws://https://streamhosting-production.up.railway.app//ws");
-
-        let lastAction = null;
+        const ws = new WebSocket("wss://streamhosting-production.up.railway.app/ws");
 
         video.onplay = () => {
             const currentTime = video.currentTime;
-            lastAction = { type: 'play', time: currentTime };
             ws.send(JSON.stringify({ action: "play", time: currentTime }));
         };
 
         video.onpause = () => {
             const currentTime = video.currentTime;
-            lastAction = { type: 'pause', time: currentTime };
             ws.send(JSON.stringify({ action: "pause", time: currentTime }));
         };
 
         video.onseeked = () => {
             const currentTime = video.currentTime;
-            lastAction = { type: 'seek', time: currentTime };
             ws.send(JSON.stringify({ action: "seek", time: currentTime }));
         };
 
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
-            const timeDifference = Math.abs(video.currentTime - message.time);
-
-            // Обновляем состояние видео, только если разница во времени достаточно велика
-            if (timeDifference > 0.5 || message.action !== lastAction.type) {
-                switch (message.action) {
-                    case "play":
-                        video.currentTime = message.time;
-                        video.play();
-                        break;
-                    case "pause":
-                        video.currentTime = message.time;
-                        video.pause();
-                        break;
-                    case "seek":
-                        video.currentTime = message.time;
-                        break;
+            if (message.action === "play") {
+                if (!video.paused || video.currentTime !== message.time) {
+                    video.currentTime = message.time;
+                    video.play();
                 }
+            } else if (message.action === "pause") {
+                if (!video.paused || video.currentTime !== message.time) {
+                    video.currentTime = message.time;
+                    video.pause();
+                }
+            } else if (message.action === "seek") {
+                video.currentTime = message.time;
             }
         };
-
     </script>
 </body>
 </html>
