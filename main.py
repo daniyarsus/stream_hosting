@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, Request, status
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import List
 from fastapi.responses import HTMLResponse
