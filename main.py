@@ -1,7 +1,15 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Request, status
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from typing import List
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
+
+# Монтируем статическую папку
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="static")
 
 # Список активных WebSocket соединений
 connections: List[WebSocket] = []
@@ -20,6 +28,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         connections.remove(websocket)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+#@app.get("/", response_class=HTMLResponse)
+#async def read_index(request: Request):
+#    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/")
+def read_root():
+    return FileResponse('static/index.html')
+
+
